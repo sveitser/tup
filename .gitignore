@@ -1,4 +1,5 @@
 data/
-.aux
-.pdf
+report/
+!report/COMP5213_Fall12_Report_Antony_Vosecky.tex
+!report/bibliography.bib
 
