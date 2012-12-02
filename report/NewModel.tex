@@ -50,7 +50,7 @@ p(z_{d,n} = k | \theta_a, \beta, w_{d,n}) \propto \exp \{ \log \theta_{a,k} + \l
 The complete conditional of the author-topic proportions is a posterior Dirichlet,
 
 \begin{equation}
-p(\theta_a | \beta, z_{d}) \propto \text{Dir} ( \alpha + \sum_{d \in D_a}{\sum_{n=1}^{N}{z^k_{d,n}}}),
+p(\theta_a | \beta, z_{d}) = \text{Dir} ( \alpha + \sum_{d \in D_a}{\sum_{n=1}^{N}{z_{d,n}}}),
 \end{equation}
 
 \noindent where $D_a$ is the set of documents whose author is $a$.
@@ -58,7 +58,7 @@ p(\theta_a | \beta, z_{d}) \propto \text{Dir} ( \alpha + \sum_{d \in D_a}{\sum_{
 Finally, the complete conditional for the topic $\beta_k$ is also a posterior Dirichlet,
 
 \begin{equation}
-p(\beta_k | \mathbf{z}, \mathbf{w}) \propto \text{Dir} ( \eta + \sum_{d=1}^{D}{\sum_{n=1}^{N}{z^k_{d,n}w_{d,n}}})
+p(\beta_k | \mathbf{z}, \mathbf{w}) = \text{Dir} ( \eta + \sum_{d=1}^{D}{\sum_{n=1}^{N}{z^k_{d,n}w_{d,n}}})
 \end{equation}
 
 
