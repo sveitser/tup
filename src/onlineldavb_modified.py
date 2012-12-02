@@ -41,6 +41,11 @@ def parse_doc_list(docs, vocab):
     docs:  List of D documents. Each document must be represented as
            a single string. (Word order is unimportant.) Any
            words not in the vocabulary will be ignored.
+           
+           Format: authorID#document
+            -> authorID must be 0-based indices that arrive in a sorted manner of new indices
+               (e.g.: 0, 1, 1, 2, 3, 4, 1, 1, 2, 5)
+           
     vocab: Dictionary mapping from words to integer ids.
 
     Returns a pair of lists of lists. 
@@ -63,7 +68,11 @@ def parse_doc_list(docs, vocab):
     
     wordids = list()
     wordcts = list()
+    authors = list()
     for d in range(0, D):
+        dauthidx = docs[d].find('#')
+        dauth = docs[d][0:dauthidx]
+        docs[d] = docs[d][dauthidx+1:]
         docs[d] = docs[d].lower()
         docs[d] = re.sub(r'-', ' ', docs[d])
         docs[d] = re.sub(r'[^a-z ]', '', docs[d])
@@ -78,8 +87,9 @@ def parse_doc_list(docs, vocab):
                 ddict[wordtoken] += 1
         wordids.append(ddict.keys())
         wordcts.append(ddict.values())
+        authors.append(dauth)           #author
 
-    return((wordids, wordcts))
+    return((wordids, wordcts, authors))
 
 class OnlineLDA:
     """
@@ -125,6 +135,11 @@ class OnlineLDA:
         self._Elogbeta = dirichlet_expectation(self._lambda)
         self._expElogbeta = n.exp(self._Elogbeta)
 
+        # Initialize the variational distribution q(theta|gamma)
+        # Just set it to prior (alpha)
+        self._theta = np.zeros((1,self._K)) + self._alpha
+
+
     def do_e_step(self, docs):
         """
         Given a mini-batch of documents, estimates the parameters
@@ -146,12 +161,22 @@ class OnlineLDA:
             temp.append(docs)
             docs = temp
 
-        (wordids, wordcts) = parse_doc_list(docs, self._vocab)
+        (wordids, wordcts, authors) = parse_doc_list(docs, self._vocab)
         batchD = len(docs)
 
         # Initialize the variational distribution q(theta|gamma) for
         # the mini-batch
-        gamma = 1*n.random.gamma(100., 1./100., (batchD, self._K))
+        # gamma = 1*n.random.gamma(100., 1./100., (batchD, self._K))
+        # Here, we should set gamma to the tweet author's gamma
+        # For each tweet in batch, get its author & set the respective gamma
+        gamma = n.zeros((batchD, self._K))
+        for d in range(0, batchD):
+             if (len(self._theta) < authors[d]):
+                  self._theta.resize((authors[d]+1, self._K), refcheck=False)
+                  self._theta[authors[d]] = alpha
+             
+             gamma[d] = self._theta[authors[d]]
+             
         Elogtheta = dirichlet_expectation(gamma)
         expElogtheta = n.exp(Elogtheta)
 
@@ -176,8 +201,7 @@ class OnlineLDA:
                 # We represent phi implicitly to save memory and time.
                 # Substituting the value of the optimal phi back into
                 # the update for gamma gives this update. Cf. Lee&Seung 2001.
-                gammad = self._alpha + expElogthetad * \
-                    n.dot(cts / phinorm, expElogbetad.T)
+                gammad = expElogthetad * n.dot(cts / phinorm, expElogbetad.T)
                 Elogthetad = dirichlet_expectation(gammad)
                 expElogthetad = n.exp(Elogthetad)
                 phinorm = n.dot(expElogthetad, expElogbetad) + 1e-100
@@ -195,6 +219,11 @@ class OnlineLDA:
         # sstats[k, w] = \sum_d n_{dw} * phi_{dwk} 
         # = \sum_d n_{dw} * exp{Elogtheta_{dk} + Elogbeta_{kw}} / phinorm_{dw}.
         sstats = sstats * self._expElogbeta
+        
+        #update global per-author proportions
+        for d in range(0, batchD):
+            self._theta[authors[d]] = self._theta[authors[d]] + gamma[d]
+        ### ---> somewhere we also need to save the author index. but this could be done as some pre-processing step
 
         return((gamma, sstats))
 
