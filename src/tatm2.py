@@ -31,7 +31,7 @@ def dirichlet_expectation(alpha):
         return(psi(alpha) - psi(n.sum(alpha)))
     return(psi(alpha) - psi(n.sum(alpha, 1))[:, n.newaxis])
 
-def parse_doc_list(docs, vocab):
+def parse_doc_list(docs, vocab, authidx):
     """
     Parse a document into a list of word ids and a list of counts,
     or parse a set of documents into two lists of lists of word ids
@@ -43,10 +43,10 @@ def parse_doc_list(docs, vocab):
            words not in the vocabulary will be ignored.
            
            Format: authorID#document
-            -> authorID must be 0-based indices that arrive in a sorted manner of new indices
-               (e.g.: 0, 1, 1, 2, 3, 4, 1, 1, 2, 5)
-           
+                      
     vocab: Dictionary mapping from words to integer ids.
+    
+    authidx: Dictionary mapping from authorIDs to integer ids.
 
     Returns a pair of lists of lists. 
 
@@ -70,14 +70,18 @@ def parse_doc_list(docs, vocab):
     wordcts = list()
     authors = list()
     for d in range(0, D):
-        dauthidx = docs[d].find('#')
-        dauth = docs[d][0:dauthidx]
-        docs[d] = docs[d][dauthidx+1:]
-        docs[d] = docs[d].lower()
-        docs[d] = re.sub(r'-', ' ', docs[d])
-        docs[d] = re.sub(r'[^a-z ]', '', docs[d])
-        docs[d] = re.sub(r' +', ' ', docs[d])
-        words = string.split(docs[d])
+        #get author
+        pointer = docs[d].find('#')
+        dauth = docs[d][0:pointer]
+        #print 'Author: %s' % (dauth)
+        dauthidx = authidx[dauth]
+        dwords = docs[d][pointer+1:]
+        #get word counts
+        dwords = dwords.lower()
+        dwords = re.sub(r'-', ' ', dwords)
+        dwords = re.sub(r'[^a-z ]', '', dwords)
+        dwords = re.sub(r' +', ' ', dwords)
+        words = string.split(dwords)
         ddict = dict()
         for word in words:
             if (word in vocab):
@@ -87,7 +91,7 @@ def parse_doc_list(docs, vocab):
                 ddict[wordtoken] += 1
         wordids.append(ddict.keys())
         wordcts.append(ddict.values())
-        authors.append(dauth)           #author
+        authors.append(dauthidx)           #author
 
     return((wordids, wordcts, authors))
 
@@ -96,7 +100,7 @@ class OnlineLDA:
     Implements online VB for LDA as described in (Hoffman et al. 2010).
     """
 
-    def __init__(self, vocab, K, D, alpha, eta, tau0, kappa):
+    def __init__(self, vocab, authidx, K, D, alpha, eta, tau0, kappa):
         """
         Arguments:
         K: Number of topics
@@ -121,8 +125,14 @@ class OnlineLDA:
             word = re.sub(r'[^a-z]', '', word)
             self._vocab[word] = len(self._vocab)
 
+        self._authidx = dict()
+        for authid in authidx:
+            authid = re.sub('\n','',authid)
+            self._authidx[authid] = len(self._authidx)
+
         self._K = K
         self._W = len(self._vocab)
+        self._A = len(self._authidx)
         self._D = D
         self._alpha = alpha
         self._eta = eta
@@ -137,7 +147,7 @@ class OnlineLDA:
 
         # Initialize the variational distribution q(theta|gamma)
         # Just set it to prior (alpha)
-        self._theta = np.zeros((1,self._K)) + self._alpha
+        self._theta = n.zeros((self._A, self._K)) + self._alpha
 
 
     def do_e_step(self, docs):
@@ -161,21 +171,20 @@ class OnlineLDA:
             temp.append(docs)
             docs = temp
 
-        (wordids, wordcts, authors) = parse_doc_list(docs, self._vocab)
+        (wordids, wordcts, authors) = parse_doc_list(docs, self._vocab, self._authidx)
         batchD = len(docs)
 
         # Initialize the variational distribution q(theta|gamma) for
         # the mini-batch
-        # gamma = 1*n.random.gamma(100., 1./100., (batchD, self._K))
+        gamma = 1*n.random.gamma(100., 1./100., (batchD, self._K))
         # Here, we should set gamma to the tweet author's gamma
         # For each tweet in batch, get its author & set the respective gamma
-        gamma = n.zeros((batchD, self._K))
-        for d in range(0, batchD):
-             if (len(self._theta) < authors[d]):
-                  self._theta.resize((authors[d]+1, self._K), refcheck=False)
-                  self._theta[authors[d]] = alpha
-             
-             gamma[d] = self._theta[authors[d]]
+        #gamma = n.zeros((batchD, self._K))
+        #for d in range(0, batchD):
+        #     gamma[d] = self._theta[authors[d]]
+             #if (len(self._theta) < authors[d]):
+             #     self._theta.resize((authors[d]+1, self._K), refcheck=False)
+             #     self._theta[authors[d]] = alpha
              
         Elogtheta = dirichlet_expectation(gamma)
         expElogtheta = n.exp(Elogtheta)
@@ -196,12 +205,14 @@ class OnlineLDA:
             # expElogthetad_k * expElogbetad_w. phinorm is the normalizer.
             phinorm = n.dot(expElogthetad, expElogbetad) + 1e-100
             # Iterate between gamma and phi until convergence
+            ####print 'entering inner loop'
             for it in range(0, 100):
                 lastgamma = gammad
                 # We represent phi implicitly to save memory and time.
                 # Substituting the value of the optimal phi back into
                 # the update for gamma gives this update. Cf. Lee&Seung 2001.
-                gammad = expElogthetad * n.dot(cts / phinorm, expElogbetad.T)
+                gammad = self._alpha + expElogthetad * n.dot(cts / phinorm, expElogbetad.T)
+                ###print str(gammad) ##########
                 Elogthetad = dirichlet_expectation(gammad)
                 expElogthetad = n.exp(Elogthetad)
                 phinorm = n.dot(expElogthetad, expElogbetad) + 1e-100
@@ -285,7 +296,7 @@ class OnlineLDA:
             temp.append(docs)
             docs = temp
 
-        (wordids, wordcts) = parse_doc_list(docs, self._vocab)
+        (wordids, wordcts, authors) = parse_doc_list(docs, self._vocab, self._authidx)
         batchD = len(docs)
 
         score = 0
