@@ -35,7 +35,7 @@ Our goal is to construct a model for Twitter user profiling. The task at hand is
 	\item Tweets are published one at a time.
 \end{itemize}
 %
-Based on these observation we propose the following two distinct models for twitter user profiling, which are shown in figure \ref{fig:plates}. The main difference between the two models is the Twitter Author Topic Model 1 (TATM1) assumes that each tweet is about a single topic (this is based on the observation of tweets consisting maximally of about two dozen words) whereas in the Twitter Author Topic Model 2 (TATM2) we have a topic assignment on a per word basis.
+Based on these observation we propose the following two distinct models for twitter user profiling shown in figure \ref{fig:plates}. The main difference between the two models is the Twitter Author Topic Model 1 (TATM1) assumes that each tweet is about a single topic (this is based on the observation of tweets consisting maximally of about two dozen words) whereas in the Twitter Author Topic Model 2 (TATM2) we have a topic assignment on a per word basis. 
 %
 \begin{figure}
 	%\includegraphics[width=0.6\linewidth]{plates}
@@ -43,7 +43,7 @@ Based on these observation we propose the following two distinct models for twit
 	\label{fig:plates}
 \end{figure}
 %
-Both of these models can take advantage of same author correlations as the author of a tweet is always known. As our average twitter user is assumed to be alive and tweeting we are very interested in having an online inference method as opposed to a batch method or standard Gibbs Sampling. An online learning method for LDA, namely \textit{stochastic variational inference} has been developed recently \cite{Hoffman10,Hoffman12}. We use it as a basis to develop an online learning method for our models.
+Both of these models can take advantage of same author correlations as the author of a tweet is always known. As our average twitter user is assumed to be alive and tweeting we are very interested in having an online inference method as opposed to a batch method or standard Gibbs Sampling. An online learning method for LDA, namely \textit{stochastic variational inference} has been developed recently \cite{Hoffman10,Hoffman12}. We use it as a basis to develop an online learning method for our models. The generative process assumed by our models is similar to the author topic model in \cite{Rosen04}. 
 
 \input{NewModel}
 
