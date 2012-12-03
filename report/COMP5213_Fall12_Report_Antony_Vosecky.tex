@@ -26,8 +26,24 @@ We discuss, evaluate and compared various topic models in regards to profiling m
 \end{abstract}
 
 \section{Introduction}
-Latent Dirichlet Allocation (LDA) is a topic model originally invented by Blei et al.\cite{Blei03} as a supervised batch learning model. 
-\cite{Hoffman12}
+Latent Dirichlet Allocation (LDA) is a topic model originally invented by Blei et al.\cite{Blei03} as a supervised batch learning model in which every observable word $w$ is supposed to have a hidden topic $k$ and is drawn from a corresponding hidden distribution over the vocabulary $\beta_k$. We use this as a starting point for our models. In general, the exact computation of the posterior in such probabilistic graphical models is intractable. Inference can however be done via approximate methods, such as  \textit{Gibbs-Sampling} \cite{Geman84} or variational inference \cite{Bishop06}.
+
+Our goal is to construct a model for Twitter user profiling. The task at hand is similar to topic modeling but has a few special properties, which call for modifications of smoothed LDA or the author topic model:
+\begin{itemize}
+	\item Posts on twitter (referred to as ''tweets``) are very short as they are limited to 140 characters.
+	\item Tweets have a single, observable author.
+	\item Tweets are published one at a time.
+\end{itemize}
+%
+Based on these observation we propose the following two distinct models for twitter user profiling, which are shown in figure \ref{fig:plates}. The main difference between the two models is the Twitter Author Topic Model 1 (TATM1) assumes that each tweet is about a single topic (this is based on the observation of tweets consisting maximally of about two dozen words) whereas in the Twitter Author Topic Model 2 (TATM2) we have a topic assignment on a per word basis.
+%
+\begin{figure}
+	%\includegraphics[width=0.6\linewidth]{plates}
+	\caption{Models in Plate Notation}
+	\label{fig:plates}
+\end{figure}
+%
+Both of these models can take advantage of same author correlations as the author of a tweet is always known. As our average twitter user is assumed to be alive and tweeting we are very interested in having an online inference method as opposed to a batch method or standard Gibbs Sampling. An online learning method for LDA, namely \textit{stochastic variational inference} has been developed recently \cite{Hoffman10,Hoffman12}. We use it as a basis to develop an online learning method for our models.
 
 \input{NewModel}
 
