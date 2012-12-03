@@ -8,10 +8,8 @@
 		\STATE Sample a document $d$ from the data set.
 	%\STATE Initialize intermediate local topic proportion $\hat{\gamma}_d = \theta_{a}$.
 		%\REPEAT
-		\FOR {$k \in \{ 1, \ldots, K \}$}
-			\STATE Set $\displaystyle \phi^k_{d} \propto \exp{ \{ \mathbb{E}[\log \theta_{a,k}} ]\} \sum_{n=1}^{N}  \exp \{ \mathbb{E}[\log \beta_{k,w_{d,n}}] \}$.
-		\ENDFOR
-		\STATE Set intermediate topic $\hat{\lambda}_k = \eta +D \phi_d^k \sum_{n=1}^{N}{w_{d,n}}$.
+		\STATE Set $\phi^k_{d} \propto \exp{ \{ \mathbb{E}[\log \theta_{a,k}} ]\} \sum_{n=1}^{N}  \exp \{ \mathbb{E}[\log \beta_{k,w_{d,n}}] \}$ , $k \in \{ 1, \ldots, K \}$.
+		\STATE Set intermediate topics $\hat{\lambda}_k = \eta +D \phi_d^k \sum_{n=1}^{N}{w_{d,n}}$ , $k\in\{1,\dots,K\}$.
 	%\UNTIL{$\hat{\gamma}_d$ converges}
 		%\STATE Set intermediate topics $\hat{\lambda} = \eta + D \sum_{n=1}^{N}{\phi_{d,n}w_{d,n}}$.
 		\STATE Set global topics $\lambda^{(t+1)} = (1 - \rho_t) \lambda^{(t)} + \rho_t \hat{\lambda}$.
