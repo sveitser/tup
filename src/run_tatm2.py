@@ -58,7 +58,7 @@ def main():
         if (iteration % 10 == 0):
             numpy.savetxt('data_tatm2/lambda-%d.dat' % iteration, olda._lambda)
             numpy.savetxt('data_tatm2/gamma-%d.dat' % iteration, gamma)
-            numpy.savetxt('data_tatm2/theta-%d.dat' % iteration, olda._theta) #per-author topic proportions
+            numpy.savetxt('data_tatm2/theta-%d.dat' % iteration, olda._gamma) #per-author topic proportions
             
 
 if __name__ == '__main__':

@@ -147,8 +147,9 @@ class OnlineLDA:
 
         # Initialize the variational distribution q(theta|gamma)
         # Just set it to prior (alpha)
-        self._theta = n.zeros((self._A, self._K)) + self._alpha
-
+        self._gamma = n.zeros((self._A, self._K)) + self._alpha
+        self._Elogtheta = dirichlet_expectation(self._gamma)
+        self._expElogtheta = n.exp(self._Elogtheta)
 
     def do_e_step(self, docs):
         """
@@ -176,16 +177,7 @@ class OnlineLDA:
 
         # Initialize the variational distribution q(theta|gamma) for
         # the mini-batch
-        gamma = 1*n.random.gamma(100., 1./100., (batchD, self._K))
-        # Here, we should set gamma to the tweet author's gamma
-        # For each tweet in batch, get its author & set the respective gamma
-        #gamma = n.zeros((batchD, self._K))
-        #for d in range(0, batchD):
-        #     gamma[d] = self._theta[authors[d]]
-             #if (len(self._theta) < authors[d]):
-             #     self._theta.resize((authors[d]+1, self._K), refcheck=False)
-             #     self._theta[authors[d]] = alpha
-             
+        gamma = self._gamma
         Elogtheta = dirichlet_expectation(gamma)
         expElogtheta = n.exp(Elogtheta)
 
@@ -197,9 +189,10 @@ class OnlineLDA:
             # These are mostly just shorthand (but might help cache locality)
             ids = wordids[d]
             cts = wordcts[d]
-            gammad = gamma[d, :]
-            Elogthetad = Elogtheta[d, :]
-            expElogthetad = expElogtheta[d, :]
+            a = authors[d]
+            gammad = gamma[a, :]
+            Elogthetad = Elogtheta[a, :]
+            expElogthetad = expElogtheta[a, :]
             expElogbetad = self._expElogbeta[:, ids]
             # The optimal phi_{dwk} is proportional to 
             # expElogthetad_k * expElogbetad_w. phinorm is the normalizer.
@@ -220,22 +213,18 @@ class OnlineLDA:
                 meanchange = n.mean(abs(gammad - lastgamma))
                 if (meanchange < meanchangethresh):
                     break
-            gamma[d, :] = gammad
+            #gamma[d, :] = gammad
+            
             # Contribution of document d to the expected sufficient
             # statistics for the M step.
             sstats[:, ids] += n.outer(expElogthetad.T, cts/phinorm)             # \phi_{d,n} = expElogthetad * wordcounts = "expected topic distr * word counts"
-
-        # This step finishes computing the sufficient statistics for the
-        # M step, so that
-        # sstats[k, w] = \sum_d n_{dw} * phi_{dwk} 
-        # = \sum_d n_{dw} * exp{Elogtheta_{dk} + Elogbeta_{kw}} / phinorm_{dw}.
-        sstats = sstats * self._expElogbeta
+            
+            x = 0.1
+            # gamma[authors[d]] =  (1 - x) * gamma[authors[d]] + x * gammad
+            gamma[authors[d]] =   gamma[authors[d]] + gammad
         
-        #update global per-author proportions
-        for d in range(0, batchD):
-            self._theta[authors[d]] = self._theta[authors[d]] + gamma[d]
-        ### ---> somewhere we also need to save the author index. but this could be done as some pre-processing step
-
+        sstats = sstats * self._expElogbeta
+        self._gamma = gamma
         return((gamma, sstats))
 
     def update_lambda(self, docs):
@@ -305,12 +294,13 @@ class OnlineLDA:
 
         # E[log p(docs | theta, beta)]
         for d in range(0, batchD):
-            gammad = gamma[d, :]
+            a = authors[d]
+            gammaa = gamma[a, :]
             ids = wordids[d]
             cts = n.array(wordcts[d])
             phinorm = n.zeros(len(ids))
             for i in range(0, len(ids)):
-                temp = Elogtheta[d, :] + self._Elogbeta[:, ids[i]]
+                temp = Elogtheta[a, :] + self._Elogbeta[:, ids[i]]
                 tmax = max(temp)
                 phinorm[i] = n.log(sum(n.exp(temp - tmax))) + tmax
             score += n.sum(cts * phinorm)
