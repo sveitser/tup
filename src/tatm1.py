@@ -218,15 +218,15 @@ class OnlineLDA:
         # sstats[k, w] = \sum_d n_{dw} * phi_{dwk} 
         # = \sum_d n_{dw} * exp{Elogtheta_{dk} + Elogbeta_{kw}} / phinorm_{dw}.
         sstats = sstats * self._expElogbeta
-        #rhot = pow(self._tau0 + self._updatect, -self._kappa)
-        rhot = 0.1
+        rhot = pow(self._tau0 + self._updatect, -self._kappa)
 
         #update global per-author proportions
         for d in range(0, batchD):
             N_d = n.sum(wordcts[d])
             ids = wordids[d] 
             # unsure if next line is according to Algo in Paper
-            sstats_d = n.sum(sstats[:,ids], 1)
+            sstats_d = n.zeros(self._K)
+            sstats_d[n.argmax(n.sum(sstats[:,ids], 1))] = 1
             gammahat = self._alpha + N_d * sstats_d
             self._gamma[authors[d]] = (1 - rhot) * self._gamma[authors[d]] + rhot * gammahat
             ### ---> somewhere we also need to save the author index. but this could be done as some pre-processing step
