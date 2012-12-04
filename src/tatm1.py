@@ -218,24 +218,24 @@ class OnlineLDA:
         # sstats[k, w] = \sum_d n_{dw} * phi_{dwk} 
         # = \sum_d n_{dw} * exp{Elogtheta_{dk} + Elogbeta_{kw}} / phinorm_{dw}.
         sstats = sstats * self._expElogbeta
-        rhot = pow(self._tau0 + self._updatect, -self._kappa)
+        #rhot = pow(self._tau0 + self._updatect, -self._kappa)
+        rhot = 0.1
 
         #update global per-author proportions
         for d in range(0, batchD):
             N_d = n.sum(wordcts[d])
-            #sstats_d = n.sum(sstats, 1)
-            sstats_d = sstats[:, d]
+            ids = wordids[d] 
+            # unsure if next line is according to Algo in Paper
+            sstats_d = n.sum(sstats[:,ids], 1)
             gammahat = self._alpha + N_d * sstats_d
             self._gamma[authors[d]] = (1 - rhot) * self._gamma[authors[d]] + rhot * gammahat
-        ### ---> somewhere we also need to save the author index. but this could be done as some pre-processing step
-
+            ### ---> somewhere we also need to save the author index. but this could be done as some pre-processing step
+            #print(self._gamma[authors[d]])
 
         self._Elogtheta = dirichlet_expectation(self._gamma)
         self._expElogtheta = n.exp(self._Elogtheta)
 
-        gamma = self._gamma
-
-        return((gamma, sstats))
+        return sstats
 
     def update_lambda(self, docs):
         """
@@ -265,9 +265,9 @@ class OnlineLDA:
         # Do an E step to update gamma, phi | lambda for this
         # mini-batch. This also returns the information about phi that
         # we need to update lambda.
-        (gamma, sstats) = self.do_e_step(docs)
+        sstats = self.do_e_step(docs)
         # Estimate held-out likelihood for current values of lambda.
-        bound = self.approx_bound(docs, gamma)
+        bound = self.approx_bound(docs)
         # Update lambda based on documents.
         self._lambda = self._lambda * (1-rhot) + \
             rhot * (self._eta + self._D * sstats / len(docs))     # sstats[k, w] = \sum_d n_{dw} * phi_{dwk} = \sum_d n_{dw} * exp{Elogtheta_{dk} + Elogbeta_{kw}} / phinorm_{dw}.
@@ -275,9 +275,9 @@ class OnlineLDA:
         self._expElogbeta = n.exp(self._Elogbeta)
         self._updatect += 1
 
-        return(gamma, bound)
+        return self._gamma, bound
 
-    def approx_bound(self, docs, gamma):
+    def approx_bound(self, docs):
         """
         Estimates the variational bound over *all documents* using only
         the documents passed in as "docs." gamma is the set of parameters
@@ -299,8 +299,9 @@ class OnlineLDA:
         batchD = len(docs)
 
         score = 0
-        Elogtheta = dirichlet_expectation(gamma)
-        expElogtheta = n.exp(Elogtheta)
+        # Elogtheta = dirichlet_expectation(gamma)
+        # expElogtheta = n.exp(Elogtheta)
+        gamma = self._gamma 
 
         # E[log p(docs | theta, beta)]
         for d in range(0, batchD):
@@ -310,7 +311,7 @@ class OnlineLDA:
             cts = n.array(wordcts[d])
             phinorm = n.zeros(len(ids))
             for i in range(0, len(ids)):
-                temp = Elogtheta[a, :] + self._Elogbeta[:, ids[i]]
+                temp = self._Elogtheta[a, :] + self._Elogbeta[:, ids[i]]
                 tmax = max(temp)
                 phinorm[i] = n.log(sum(n.exp(temp - tmax))) + tmax
             score += n.sum(cts * phinorm)
@@ -321,7 +322,7 @@ class OnlineLDA:
 #             score += n.sum(cts * n.log(phinorm))
 
         # E[log p(theta | alpha) - log q(theta | gamma)]
-        score += n.sum((self._alpha - gamma)*Elogtheta)
+        score += n.sum((self._alpha - gamma)*self._Elogtheta)
         score += n.sum(gammaln(gamma) - gammaln(self._alpha))
         score += sum(gammaln(self._alpha*self._K) - gammaln(n.sum(gamma, 1)))
 
