@@ -56,9 +56,9 @@ def main():
         # distributions over topic weights for the articles analyzed in
         # the last iteration.
         if (iteration % 10 == 0):
-            numpy.savetxt('data_tatm2/lambda-%d.dat' % iteration, olda._lambda)
-            numpy.savetxt('data_tatm2/gamma-%d.dat' % iteration, gamma)
-            numpy.savetxt('data_tatm2/theta-%d.dat' % iteration, olda._theta) #per-author topic proportions
+            numpy.savetxt('data_tatm1/lambda-%d.dat' % iteration, olda._lambda)
+            numpy.savetxt('data_tatm1/gamma-%d.dat' % iteration, gamma)
+            numpy.savetxt('data_tatm1/theta-%d.dat' % iteration, olda._theta) #per-author topic proportions
             
 
 if __name__ == '__main__':

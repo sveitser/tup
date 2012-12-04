@@ -218,16 +218,17 @@ class OnlineLDA:
         # sstats[k, w] = \sum_d n_{dw} * phi_{dwk} 
         # = \sum_d n_{dw} * exp{Elogtheta_{dk} + Elogbeta_{kw}} / phinorm_{dw}.
         sstats = sstats * self._expElogbeta
-        
         rhot = pow(self._tau0 + self._updatect, -self._kappa)
 
         #update global per-author proportions
         for d in range(0, batchD):
             N_d = n.sum(wordcts[d])
-            sstats_d = n.sum(sstats, 1)
+            #sstats_d = n.sum(sstats, 1)
+            sstats_d = sstats[:, d]
             gammahat = self._alpha + N_d * sstats_d
             self._gamma[authors[d]] = (1 - rhot) * self._gamma[authors[d]] + rhot * gammahat
         ### ---> somewhere we also need to save the author index. but this could be done as some pre-processing step
+
 
         self._Elogtheta = dirichlet_expectation(self._gamma)
         self._expElogtheta = n.exp(self._Elogtheta)
@@ -274,8 +275,6 @@ class OnlineLDA:
         self._expElogbeta = n.exp(self._Elogbeta)
         self._updatect += 1
 
-        print gamma
-
         return(gamma, bound)
 
     def approx_bound(self, docs, gamma):
@@ -305,12 +304,13 @@ class OnlineLDA:
 
         # E[log p(docs | theta, beta)]
         for d in range(0, batchD):
-            gammad = gamma[d, :]
+            a = authors[d]
+            gammaa = gamma[a, :]
             ids = wordids[d]
             cts = n.array(wordcts[d])
             phinorm = n.zeros(len(ids))
             for i in range(0, len(ids)):
-                temp = Elogtheta[d, :] + self._Elogbeta[:, ids[i]]
+                temp = Elogtheta[a, :] + self._Elogbeta[:, ids[i]]
                 tmax = max(temp)
                 phinorm[i] = n.log(sum(n.exp(temp - tmax))) + tmax
             score += n.sum(cts * phinorm)
