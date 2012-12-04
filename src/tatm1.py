@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, re, time, string
+import sys, re, time, string, random
 import numpy as n
 from scipy.special import gammaln, psi
 
@@ -148,11 +148,10 @@ class OnlineLDA:
         # Initialize the variational distribution q(theta|gamma)
         # Just set it to prior (alpha)
         self._theta = n.zeros((self._A, self._K)) + self._alpha
-
+        
         self._gamma = n.zeros((self._A, self._K)) + self._alpha
         self._Elogtheta = dirichlet_expectation(self._gamma)
         self._expElogtheta = n.exp(self._Elogtheta)
-
 
     def do_e_step(self, docs):
         """
@@ -180,61 +179,48 @@ class OnlineLDA:
 
         # Initialize the variational distribution q(theta|gamma) for
         # the mini-batch
-        # gamma = 1*n.random.gamma(100., 1./100., (batchD, self._K))
-        # Here, we should set gamma to the tweet author's gamma
-        # For each tweet in batch, get its author & set the respective gamma
-        #gamma = n.zeros((batchD, self._K))
-        #for d in range(0, batchD):
-        #     gamma[d] = self._theta[authors[d]]
-             #if (len(self._theta) < authors[d]):
-             #     self._theta.resize((authors[d]+1, self._K), refcheck=False)
-             #     self._theta[authors[d]] = alpha
-             
-        # Elogtheta = dirichlet_expectation(gamma)
-        # expElogtheta = n.exp(Elogtheta)
+        gamma = self._gamma
+        #gamma = 1*n.random.gamma(100., 1./100., (batchD, self._K))
+        Elogtheta = dirichlet_expectation(gamma)
+        expElogtheta = n.exp(Elogtheta)
 
         sstats = n.zeros(self._lambda.shape)
         # Now, for each document d update that document's gamma and phi
         it = 0
         meanchange = 0
         for d in range(0, batchD):
+            # These are mostly just shorthand (but might help cache locality)
             ids = wordids[d]
             cts = wordcts[d]
-            a = authors[d] 
-            expElogbetad = self._expElogbeta[:, ids]
+            a = authors[d]
+            gammaa = gamma[a, :]
             expElogthetaa = self._expElogtheta[a, :]
-
+            expElogbetad = self._expElogbeta[:, ids]
             # The optimal phi_{dwk} is proportional to 
             # expElogthetad_k * expElogbetad_w. phinorm is the normalizer.
-            # phinorm = n.dot(expElogthetad, expElogbetad) + 1e-100
             phinorm = n.dot(expElogthetaa, expElogbetad) + 1e-100
-
+            gammad = self._alpha + (expElogthetaa) * n.dot(cts / phinorm, expElogbetad.T)            
+           
+            expElogthetad = n.exp(dirichlet_expectation(gammad))
+            phinorm = n.dot(expElogthetaa, expElogbetad) + 1e-100
+            
+            z_d = n.argmax(gammad)
+            
+            gammaa_new = n.zeros(self._K)
+            gammaa_new[z_d] = n.sum(wordcts[d]) #z_score
+            self._gamma[a, :] = gammaa * 0.9 + 0.1 * gammaa_new
+            #print self._gamma[a, :]
+            
+            #print gammad ######
             # Contribution of document d to the expected sufficient
             # statistics for the M step.
-            sstats[:, ids] += n.outer(expElogthetaa, cts/phinorm)   # \phi_{d,n} = expElogthetad * wordcounts = "expected topic distr * word counts"
-
-        # This step finishes computing the sufficient statistics for the
-        # M step, so that
-        # sstats[k, w] = \sum_d n_{dw} * phi_{dwk} 
-        # = \sum_d n_{dw} * exp{Elogtheta_{dk} + Elogbeta_{kw}} / phinorm_{dw}.
+            sstats[:, ids] += n.outer(expElogthetad.T, cts/phinorm)             # \phi_{d,n} = expElogthetad * wordcounts = "expected topic distr * word counts"
+            
         sstats = sstats * self._expElogbeta
-        
-        rhot = pow(self._tau0 + self._updatect, -self._kappa)
-
-        #update global per-author proportions
-        for d in range(0, batchD):
-            N_d = n.sum(wordcts[d])
-            sstats_d = n.sum(sstats, 1)
-            gammahat = self._alpha + N_d * sstats_d
-            self._gamma[authors[d]] = (1 - rhot) * self._gamma[authors[d]] + rhot * gammahat
-        ### ---> somewhere we also need to save the author index. but this could be done as some pre-processing step
-
         self._Elogtheta = dirichlet_expectation(self._gamma)
         self._expElogtheta = n.exp(self._Elogtheta)
-
-        gamma = self._gamma
-
-        return((gamma, sstats))
+        
+        return sstats
 
     def update_lambda(self, docs):
         """
@@ -264,9 +250,9 @@ class OnlineLDA:
         # Do an E step to update gamma, phi | lambda for this
         # mini-batch. This also returns the information about phi that
         # we need to update lambda.
-        (gamma, sstats) = self.do_e_step(docs)
+        sstats = self.do_e_step(docs)
         # Estimate held-out likelihood for current values of lambda.
-        bound = self.approx_bound(docs, gamma)
+        bound = self.approx_bound(docs)
         # Update lambda based on documents.
         self._lambda = self._lambda * (1-rhot) + \
             rhot * (self._eta + self._D * sstats / len(docs))     # sstats[k, w] = \sum_d n_{dw} * phi_{dwk} = \sum_d n_{dw} * exp{Elogtheta_{dk} + Elogbeta_{kw}} / phinorm_{dw}.
@@ -274,11 +260,9 @@ class OnlineLDA:
         self._expElogbeta = n.exp(self._Elogbeta)
         self._updatect += 1
 
-        print gamma
+        return self._gamma, bound
 
-        return(gamma, bound)
-
-    def approx_bound(self, docs, gamma):
+    def approx_bound(self, docs):
         """
         Estimates the variational bound over *all documents* using only
         the documents passed in as "docs." gamma is the set of parameters
@@ -300,17 +284,18 @@ class OnlineLDA:
         batchD = len(docs)
 
         score = 0
+        gamma = self._gamma
         Elogtheta = dirichlet_expectation(gamma)
         expElogtheta = n.exp(Elogtheta)
 
         # E[log p(docs | theta, beta)]
         for d in range(0, batchD):
-            gammad = gamma[d, :]
+            a = authors[d]
             ids = wordids[d]
             cts = n.array(wordcts[d])
             phinorm = n.zeros(len(ids))
             for i in range(0, len(ids)):
-                temp = Elogtheta[d, :] + self._Elogbeta[:, ids[i]]
+                temp = Elogtheta[a, :] + self._Elogbeta[:, ids[i]]
                 tmax = max(temp)
                 phinorm[i] = n.log(sum(n.exp(temp - tmax))) + tmax
             score += n.sum(cts * phinorm)
