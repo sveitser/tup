@@ -10,6 +10,9 @@
 \usepackage[sorting=none]{biblatex}
 \bibliography{bibliography.bib}
 
+% definitions
+\def\eqd{\,{\buildrel d \over =}\,} 
+
 \title{Topic Models for Twitter User Profiling}
 \author{
 \begin{tabular}{cc}
@@ -46,6 +49,49 @@ Based on these observation we propose the following two distinct models for twit
 \end{figure}
 %
 Both of these models can take advantage of same author correlations as the author of a tweet is always known. As our average twitter user is assumed to be alive and tweeting we are very interested in having an online inference method as opposed to a batch method or standard Gibbs Sampling. An online learning method for LDA, namely \textit{stochastic variational inference} has been developed recently \cite{Hoffman10,Hoffman12}. We use it as a basis to develop an online learning method for our models. The generative process assumed by our models is similar to the author topic model in \cite{Rosen04}. 
+
+\section{Stochastic Variational Inference}
+The procedure is derived in detail in \cite{Hoffman12}, here we give a high
+level summary. For this part, we assume $N$ observations ${\bf x}=x_{1:N}$, $N$
+local hidden variables ${\bf z}=z_{1:N}$ (in which each $z_n = z_{n,1:J}$ is a
+collection of $J$ variables) and a vector of global hidden variables
+$\beta$. The joint distribution factors as
+\begin{equation}
+    p(\beta, z_{1:N}, x_{1:N}) = p(\beta) \prod_{n=1}^N p(z_n,x_n|\beta)
+\end{equation}
+The distribution of a hidden variable $\xi$ given all other hidden variables and the
+observations $\Omega$ is referred to as the complete conditional. The complete conditionals 
+of all local and global variable are assumed to be in the exponential family, 
+i. e. of the form:
+\begin{equation}
+    p(\xi|\Omega) =  h_\xi (\xi) \exp \left\{ \eta_\Omega(\Omega)^T t_\xi(\xi) -
+        a_\Omega(\eta_\Omega(\Omega))
+    \right\} \, .
+\end{equation}
+where $h_\xi$, $a_\Omega$, $\eta_\Omega$ and $t_\xi$ are called \textit{base
+measure}, \textit{log-normalizer}, \textit{natural parameter} and
+\textit{sufficient statistics} respectively.
+
+Our goal is to find a distribution $q({\bf z}, \beta)$ which approximates the real posterior as
+well as possible. Variational inference minimizes the Kullback-Leibler distance
+between the variational distribution $q$ and the true posterior $p({\bf z}, \beta | {\bf
+x})$, by maximizing the \textit{evidence lower bound} (ELBO) which is equal to
+the Kullback-Leibler up to a additive constant.
+
+We choose our variational distribution $q$ in the \textit{mean-field family}
+\begin{equation}
+    q({\bf z}, \beta) = q(\beta | \lambda) \prod_{n=1}^N\prod_{j=1}^J
+    q(z_{n,j}|\phi_{n,j}) \,. 
+\end{equation}
+Now we set $q(\beta|\lambda)$ $q(z_{n,j}|\phi_{n,j})$ from the same exponential
+family as the complete conditionals which are again in the same family as the
+prior.
+\begin{eqnarray}
+    q(\beta|\lambda) &=& h(\beta) \exp\left\{ \lambda^T t(\beta) -
+        a_g(\lambda) \right\} \\
+    q(z_{n,j}|\phi_{n,j}) &=& h(z_{n,j}) \exp\left\{ \phi_{n,j}^Tt(z_{n,j})
+        -a_{\ell,j}(\phi_{n,j}) \right\}
+\end{eqnarray}
 
 \input{NewModel}
 
