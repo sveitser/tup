@@ -76,7 +76,7 @@ Our goal is to find a distribution $q({\bf z}, \beta)$ which approximates the re
 well as possible. Variational inference minimizes the Kullback-Leibler distance
 between the variational distribution $q$ and the true posterior $p({\bf z}, \beta | {\bf
 x})$, by maximizing the \textit{evidence lower bound} (ELBO) which is equal to
-the Kullback-Leibler up to a additive constant.
+the negative of the Kullback-Leibler distance up to an additive constant.
 
 We choose our variational distribution $q$ in the \textit{mean-field family}
 \begin{equation}
@@ -92,6 +92,8 @@ prior.
     q(z_{n,j}|\phi_{n,j}) &=& h(z_{n,j}) \exp\left\{ \phi_{n,j}^Tt(z_{n,j})
         -a_{\ell,j}(\phi_{n,j}) \right\}
 \end{eqnarray}
+
+{\color{red} todo: Natural gradient}
 
 \input{NewModel}
 
