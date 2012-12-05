@@ -11,7 +11,9 @@
 \bibliography{bibliography.bib}
 
 % definitions
-\def\eqd{\,{\buildrel d \over =}\,} 
+\def\eqd{\,{\buildrel d \over =}\,}
+\def\x{{\bf x}}
+\def\z{{\bf z}}
 
 \title{Topic Models for Twitter User Profiling}
 \author{
@@ -52,7 +54,7 @@ Both of these models can take advantage of same author correlations as the autho
 
 \section{Stochastic Variational Inference}
 The procedure is derived in detail in \cite{Hoffman12}, here we give a high
-level summary. For this part, we assume $N$ observations ${\bf x}=x_{1:N}$, $N$
+level summary of the involved concepts. For this section, we assume $N$ observations ${\bf x}=x_{1:N}$, $N$
 local hidden variables ${\bf z}=z_{1:N}$ (in which each $z_n = z_{n,1:J}$ is a
 collection of $J$ variables) and a vector of global hidden variables
 $\beta$. The joint distribution factors as
@@ -75,7 +77,11 @@ measure}, \textit{log-normalizer}, \textit{natural parameter} and
 Our goal is to find a distribution $q({\bf z}, \beta)$ which approximates the real posterior as
 well as possible. Variational inference minimizes the Kullback-Leibler distance
 between the variational distribution $q$ and the true posterior $p({\bf z}, \beta | {\bf
-x})$, by maximizing the \textit{evidence lower bound} (ELBO) which is equal to
+x})$, by maximizing the \textit{evidence lower bound} (ELBO)
+\begin{equation}
+\mathcal{L}(q) = \mathbb{E}_q[\log p(\x,\z,\beta)] - \mathbb{E}_q[\log q(\z,\beta)]
+\end{equation}
+which is equal to
 the negative of the Kullback-Leibler distance up to an additive constant.
 
 We choose our variational distribution $q$ in the \textit{mean-field family}
@@ -83,17 +89,49 @@ We choose our variational distribution $q$ in the \textit{mean-field family}
     q({\bf z}, \beta) = q(\beta | \lambda) \prod_{n=1}^N\prod_{j=1}^J
     q(z_{n,j}|\phi_{n,j}) \,. 
 \end{equation}
-Now we set $q(\beta|\lambda)$ $q(z_{n,j}|\phi_{n,j})$ from the same exponential
-family as the complete conditionals which are again in the same family as the
-prior.
+Now we take $q(\beta|\lambda)$ and $q(z_{n,j}|\phi_{n,j})$ to be in the same exponential family as the complete conditionals which are again in the same family as the prior, i. e.
 \begin{eqnarray}
     q(\beta|\lambda) &=& h(\beta) \exp\left\{ \lambda^T t(\beta) -
         a_g(\lambda) \right\} \\
     q(z_{n,j}|\phi_{n,j}) &=& h(z_{n,j}) \exp\left\{ \phi_{n,j}^Tt(z_{n,j})
-        -a_{\ell,j}(\phi_{n,j}) \right\}
+        -a_{\ell,j}(\phi_{n,j}) \right\} \, .
+\end{eqnarray}
+The careful choice of distribution makes is rather straightforward to compute both the (Euclidean) gradients as well as the natural gradients which can then be used for coordinate ascent to maximize the ELBO. The (Euclidean) gradients with respect to the global and local variables are respectively
+\begin{eqnarray}
+    \nabla_\lambda \mathcal L &=& \nabla^2_\lambda a_g(\lambda)\left( \mathbb E_\phi[\eta_g(\x,\z,\alpha)] - \lambda \right) \label{eq:glob-grad} \\
+    \nabla_{\phi_{n,j}} \mathcal L &=& \nabla^2_{\phi_{n,j}} a_{\ell,j}({\phi_{n,j}})\left( \mathbb E_{\lambda,\phi_{n,-j}}[\eta_\ell(x_n,z_n,\beta)] - \phi_{n,j} \right) \, . \label{eq:loc:grad}
+\end{eqnarray}
+It turns out one can obtain an even simpler, yet arguably more useful, expression for the natural gradients. The natural gradient of a function $f$ is given by
+\begin{equation}
+\hat{\nabla}_\lambda f (\lambda) = G(\lambda)^{-1} \nabla_\lambda f(\lambda) \label{eq:nat-grad}
+\end{equation}
+where $G(\lambda)$ is the Riemannian metric tensor. If one chooses the symmetrized KL distance 
+\begin{equation}
+D_\textrm{KL}^{\textrm{sym}}(\lambda,\lambda') =
+\mathbb{E}_\lambda \left[ \log \frac{q(\beta|\lambda)}{q(\beta|\lambda')}\right] 
++  \mathbb{E}_\lambda' \left[ \log \frac{q(\beta|\lambda')}{q(\beta|\lambda)}\right]
+\end{equation}
+which is invariant to parameter transformations as distance measure, the Riemannian metric is the Fisher information matrix
+\begin{equation}
+    G(\lambda)  = \mathbb{E}_\lambda 
+    \left[
+    (\nabla_\lambda \log q(\beta|\lambda))
+    (\nabla_\lambda \log q(\beta|\lambda))^T
+    \right] \,.
+\end{equation}
+With the choice of $q(\beta|\lambda)$ from the exponential family we have 
+\begin{equation}
+G(\lambda) = \nabla^2_\lambda a(\lambda).
+\end{equation}
+Plugging this result together with equation \ref{eq:glob-grad} resp. \ref{eq:loc:grad} into \ref{eq:nat-grad} yields the natural gradients
+\begin{eqnarray}
+\hat\nabla_\lambda \mathcal L &=& 
+ \mathbb E_\phi[\eta_g(\x,\z,\alpha)] - \lambda   \\
+\hat\nabla_{\phi_{n,j}} \mathcal L &=& 
+ \mathbb E_{\lambda,\phi_{n,-j}}[\eta_\ell(x_n,z_n,\beta)] - \phi_{n,j} \, .
 \end{eqnarray}
 
-{\color{red} todo: Natural gradient}
+
 
 \input{NewModel}
 
