@@ -130,7 +130,7 @@ Plugging this result together with equation \ref{eq:glob-grad} resp. \ref{eq:loc
 \hat\nabla_{\phi_{n,j}} \mathcal L &=& 
  \mathbb E_{\lambda,\phi_{n,-j}}[\eta_\ell(x_n,z_n,\beta)] - \phi_{n,j} \, .
 \end{eqnarray}
-It turns out this case, with the careful choice of distributions and distance measure the natural gradient is cheaper to compute than the standard (Euclidean) gradient. Another important advantage is that our natural gradient points in the steepest direction in Riemannian space where the distance is measured by the symmetrized KL divergence instead of Euclidean space where the distance measure is simply the Euclidean distance between the two parameter vectors. Gradient ascent with these natural gradients will therefore reduce the dissimilarity between the two distributions more efficiently.
+It turns out in this particular case, with the careful choice of distributions and distance measure the natural gradient is cheaper to compute than the standard (Euclidean) gradient. Another important advantage is that our natural gradient points in the steepest direction in Riemannian space where the distance is measured by the symmetrized KL divergence instead of Euclidean space where the distance measure is simply the Euclidean distance between the two parameter vectors. Gradient ascent with these natural gradients will therefore reduce the dissimilarity between the two distributions more efficiently.
 
 
 \input{NewModel}
