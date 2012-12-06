@@ -228,12 +228,13 @@ class OnlineLDA:
             #self._expElogtheta = n.exp(self._Elogtheta)
             #print str(gamma[authors[d]])
             
+            rhot = pow(self._tau0 + self._updatect, -self._kappa)
+            self._gamma[a] =  (1 - rhot) * self._gamma[a] + rhot * (gammad)
         
         #print sstats ################
         sstats = sstats * self._expElogbeta
         
         #self._gamma = gamma
-        self._gamma[a] =   self._gamma[a] + (gammad - self._alpha)
         self._Elogtheta = dirichlet_expectation(self._gamma)
         self._expElogtheta = n.exp(self._Elogtheta)
         
