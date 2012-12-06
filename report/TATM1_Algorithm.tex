@@ -8,14 +8,24 @@
 		\STATE Sample a document $d$ from the data set.
 	%\STATE Initialize intermediate local topic proportion $\hat{\gamma}_d = \theta_{a}$.
 		%\REPEAT
-		\STATE Set $\phi^k_{d} \propto \exp{ \{ \mathbb{E}[\log \theta_{a,k}} ]\} \sum_{n=1}^{N}  \exp \{ \mathbb{E}[\log \beta_{k,w_{d,n}}] \}$ , $k \in \{ 1, \ldots, K \}$.
+		\FOR {$n \in \{ 1, \ldots, N \}, k \in \{ 1, \ldots, K \}$}
+		%\STATE Set $\phi^k_{d} \propto \exp{ \{ \mathbb{E}[\log \theta_{a,k}} ]\} \sum_{n=1}^{N}  \exp \{ \mathbb{E}[\log \beta_{k,w_{d,n}}] \}$ , $k \in \{ 1, \ldots, K \}$.
+			\STATE Set $\phi^k_{d,n} \propto \exp \{ \mathbb{E}[\log \theta_{a,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \}$.
+		\ENDFOR
+		\STATE choose most likely topic $k^*=\arg\max_k \sum_n \phi^k_{d,n}$
+		\STATE Set intermediate author topic proportion $\hat{\gamma}^k_a = 
+			\left\lbrace \begin{array}{ll}
+			\alpha & \textrm{if }k\neq k^* \\
+			\alpha + N & \textrm{if }k=k^*
+			\end{array}   \right. $
+		
+		\STATE Set global author topic proportions $\gamma_a^{(t+1)} = (1 - \rho_t) \gamma_a^{(t)} + \rho_t \hat{\gamma}_a$.
 		\STATE Set intermediate topics $\hat{\lambda}_k = \eta +D \phi_d^k \sum_{n=1}^{N}{w_{d,n}}$ , $k\in\{1,\dots,K\}$.
 	%\UNTIL{$\hat{\gamma}_d$ converges}
 		%\STATE Set intermediate topics $\hat{\lambda} = \eta + D \sum_{n=1}^{N}{\phi_{d,n}w_{d,n}}$.
 		\STATE Set global topics $\lambda^{(t+1)} = (1 - \rho_t) \lambda^{(t)} + \rho_t \hat{\lambda}$.
 		%\STATE Set global per-author topic proportions $\gamma^{(t+1)}_a = \gamma^{(t)}_a + \hat{\gamma}_d$.
-		\STATE Set intermediate author topic proportion $\hat{\gamma}_a = \alpha +  N \phi_d$.
-		\STATE Set global author topic proportions $\gamma_a^{(t+1)} = (1 - \rho_t) \gamma_a^{(t)} + \rho_t \hat{\gamma}_a$.
+		%\STATE Set intermediate author topic proportion $\hat{\gamma}_a = \alpha +  N \phi_d$.
 	\UNTIL{forever}
 \end{algorithmic}
 \end{algorithm}
