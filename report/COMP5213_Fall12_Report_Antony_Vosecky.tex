@@ -39,6 +39,7 @@ Our goal is to construct a model for Twitter user profiling. The task at hand is
 \begin{itemize}
 	\item Posts on twitter (referred to as ''tweets``) are very short as they are limited to 140 characters.
 	\item Tweets have a single, observable author.
+	\item We can expect to have at least a handful of tweets from each author.
 	\item Tweets are published one at a time.
 \end{itemize}
 %
@@ -130,7 +131,7 @@ Plugging this result together with equation \ref{eq:glob-grad} resp. \ref{eq:loc
 \hat\nabla_{\phi_{n,j}} \mathcal L &=& 
  \mathbb E_{\lambda,\phi_{n,-j}}[\eta_\ell(x_n,z_n,\beta)] - \phi_{n,j} \, .
 \end{eqnarray}
-It turns out in this particular case, with the careful choice of distributions and distance measure the natural gradient is cheaper to compute than the standard (Euclidean) gradient. Another important advantage is that our natural gradient points in the steepest direction in Riemannian space where the distance is measured by the symmetrized KL divergence instead of Euclidean space where the distance measure is simply the Euclidean distance between the two parameter vectors. Gradient ascent with these natural gradients will therefore reduce the dissimilarity between the two distributions more efficiently.
+It turns out in this particular case, with the careful choice of distributions and distance measure the natural gradient is cheaper to compute than the standard (Euclidean) gradient. Another important advantage is that our natural gradient points in the steepest direction in Riemannian space where the distance is measured by the symmetrized KL divergence instead of Euclidean space where the distance measure is simply the Euclidean distance between the two parameter vectors. Gradient ascent with these natural gradients will therefore reduce the dissimilarity between the two distributions more efficiently. For an interesting brief argument for natural gradients and comparison see \cite{Amari98}.
 
 
 \input{NewModel}
