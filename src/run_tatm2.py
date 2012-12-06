@@ -26,17 +26,17 @@ def main():
         documentstoanalyze = int(sys.argv[1])
 
     # Our vocabulary
-    vocab = file('./dictnostops.txt').readlines()
+    vocab = file('./twitterdict.txt').readlines()
     W = len(vocab)
     
     # Author index
     authidx = file('./userlist.txt').readlines()
 
     # Load documents
-    tweets = file('./tweets_linebyline.txt').readlines()
+    tweets = file('./tweets_linebyline_shuffled.txt').readlines()
 
     # Initialize the algorithm with alpha=1/K, eta=1/K, tau_0=1024, kappa=0.7
-    olda = tatm2.OnlineLDA(vocab, authidx, K, D, 1./K, 1./K, 1024., 0.9)
+    olda = tatm2.OnlineLDA(vocab, authidx, K, D, 1./K, 1./K, 256., 0.99)
     # Run until we've seen D documents. (Feel free to interrupt *much*
     # sooner than this.)
     for iteration in range(0, documentstoanalyze):
@@ -58,8 +58,10 @@ def main():
         if (iteration % 10 == 0):
             numpy.savetxt('data_tatm2/lambda-%d.dat' % iteration, olda._lambda)
             numpy.savetxt('data_tatm2/gamma-%d.dat' % iteration, gamma)
-            numpy.savetxt('data_tatm2/theta-%d.dat' % iteration, olda._theta) #per-author topic proportions
+            numpy.savetxt('data_tatm2/theta-%d.dat' % iteration, olda._gamma) #per-author topic proportions
             
+    kl = olda.kl_divergence()
+    print ' KL divergence = %f' % (kl)
 
 if __name__ == '__main__':
     main()
