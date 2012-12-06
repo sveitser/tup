@@ -2,7 +2,7 @@
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=0.3\textwidth]{TATM2.eps}
+    \includegraphics[width=0.4\textwidth]{TATM2.eps}
     \caption{TATM2 in plate notation}
     \label{fig:TATM2}
 \end{figure}
@@ -90,18 +90,16 @@ Each update of the global variational Dirichlets is defined as
 
 \subsection{Stochastic variational inference}
 
-Each update of the local variables is defined as
+
+Each update of the local variables $\phi^k_{d,n}$ is then defined as
 \begin{equation}
-\phi^k_{d,n} \propto \exp \{ \mathbb{E}[\log \theta_{d,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \},
+\phi^k_{d,n} \propto \exp \{ \mathbb{E}[\log \theta_{a,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \} + \exp \{ \mathbb{E}[\log \theta_{d,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \}.
 \end{equation}
 
-\noindent where $\theta_{d,k}$ is the document-specific topic proportion.
-
-During the updates of local variables, we utilize an intermediate local variable $\hat{\gamma}_d$, which serves as an indicator of convergence of $\phi_{d}$ during the inner loop of the E-step. Specifically,
+During the updates of local variables, we utilize an intermediate local variable $\theta_{d}$, linked to an intermediate variational parameter $\hat{\gamma}_d$. This mechanism serves as a proxy for the convergence of $\phi_{d}$ during the inner loop of the E-step. After each update of $\phi_{d}$, $\hat{\gamma}_d$ is updated as
 \begin{equation}
-\hat{\gamma}_d = \sum_{n=1}^{N}{\phi_{d,n}}
+\hat{\gamma}_d = \alpha + \sum_{n=1}^{N}{\phi_{d,n}}
 \end{equation}
-
 
 After fitting the local variables, we set the intermediate topics as
 \begin{equation}
@@ -114,7 +112,7 @@ Finally, the global topics and the global per-author topic proportions are updat
 \end{equation}
 
 \begin{equation}
-\gamma^{(t+1)}_a = \gamma^{(t)}_a + \hat{\gamma}_d
+\gamma^{(t+1)}_a = (1 - \rho_t) \gamma^{(t)}_a + \rho_t \hat{\gamma}_d
 \end{equation}
 
 
@@ -131,13 +129,13 @@ Finally, the global topics and the global per-author topic proportions are updat
 	\STATE Initialize intermediate local topic proportion $\hat{\gamma}_d = \theta_{a}$.
 		\REPEAT
 			\FOR {$n \in \{ 1, \ldots, N \}, k \in \{ 1, \ldots, K \}$}
-					\STATE Set $\phi^k_{d,n} \propto \exp \{ \mathbb{E}[\log \theta_{d,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \}$.
+					\STATE Set $\phi^k_{d,n} \propto \exp \{ \mathbb{E}[\log \theta_{a,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \} + \exp \{ \mathbb{E}[\log \theta_{d,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \}$.
 			\ENDFOR
-			\STATE Set $\hat{\gamma}_d = \sum_{n=1}^{N}{\phi_{d,n}}$.
+			\STATE Set $\hat{\gamma}_d = \alpha + \sum_{n=1}^{N}{\phi_{d,n}}$.
 		\UNTIL{$\hat{\gamma}_d$ converges}
 		\STATE Set intermediate topics $\hat{\lambda} = \eta + D \sum_{n=1}^{N}{\phi_{d,n}w_{d,n}}$.
 		\STATE Set global topics $\lambda^{(t+1)} = (1 - \rho_t) \lambda^{(t)} + \rho_t \hat{\lambda}$.
-		\STATE Set global per-author topic proportions $\gamma^{(t+1)}_a = \gamma^{(t)}_a + \hat{\gamma}_d$.
+		\STATE Set global per-author topic proportions $\gamma^{(t+1)}_a = (1 - \rho_t) \gamma^{(t)}_a + \rho_t \hat{\gamma}_d$.
 	\UNTIL{forever}
 \end{algorithmic}
 \end{algorithm}
