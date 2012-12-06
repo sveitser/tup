@@ -205,17 +205,17 @@ class OnlineLDA:
             phinorm = n.dot(expElogthetaa, expElogbetad) + 1e-100
             
             z_d = n.argmax(gammad)
-            
-            gammaa_new = n.zeros(self._K)
-            gammaa_new[z_d] = n.sum(wordcts[d]) #z_score
-            self._gamma[a, :] = gammaa * 0.9 + 0.1 * gammaa_new
-            #print self._gamma[a, :]
+            gammaa_new = n.zeros(self._K) + self._alpha
+            gammaa_new[z_d] += n.sum(wordcts[d]) #z_score
+            self._gamma[a, :] = 0.99 * gammaa + 0.01 * gammaa_new
+            # print [f(self._gamma[a, :]) for f in [n.min, n.max, n.mean]]
             
             #print gammad ######
             # Contribution of document d to the expected sufficient
             # statistics for the M step.
-            sstats[:, ids] += n.outer(expElogthetad.T, cts/phinorm)             # \phi_{d,n} = expElogthetad * wordcounts = "expected topic distr * word counts"
-            
+            #sstats[:, ids] += n.outer(expElogthetad.T, cts/phinorm)             # \phi_{d,n} = expElogthetad * wordcounts = "expected topic distr * word counts"
+            sstats[:, ids] += n.outer(expElogthetaa.T, cts/phinorm)
+
         sstats = sstats * self._expElogbeta
         self._Elogtheta = dirichlet_expectation(self._gamma)
         self._expElogtheta = n.exp(self._Elogtheta)
@@ -259,6 +259,8 @@ class OnlineLDA:
         self._Elogbeta = dirichlet_expectation(self._lambda)
         self._expElogbeta = n.exp(self._Elogbeta)
         self._updatect += 1
+        #print [f(self._lambda) for f in [n.min, n.max, n.mean]]
+
 
         return self._gamma, bound
 
