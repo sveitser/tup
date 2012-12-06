@@ -1,0 +1,40 @@
+\section{Experiments}
+
+\subsection{Methodology}\label{sec:methodology}
+
+\subsubsection{Data}\label{sec:data}
+
+We use our own dataset consisting of 328,428 tweets by 1,876 different users. In brief, it was obtained by selecting a set of 50 popular \textit{core users} from 5 randomly selected categories and crawling Twitter users' posts in a breadth-first search manner by traversing the followee graph. The data was then pre-processed with stemming and stop-word removal.
+
+\subsubsection{Software}\label{sec:code}
+
+As a base for our code we use an open source online LDA variational bayes package made available by Matt Hoffman\footnote{\url{http://www.cs.princeton.edu/~blei/downloads/onlineldavb.tar}}. We adapted it to incorporate our models and used the included online LDA methods as a benchmark against our models.
+
+
+\subsection{Topic Model Evaluation}
+\subsubsection{Perplexity Evaluation}
+
+%We use the standard metric perplexity \cite{RefWorks:138} to evaluate the topic model's capability of predicting unseen data. 
+
+%We use the data from 286 users for training. As the heldout testing data, we use the remaining 20 users' data. 
+
+After training the model on the training dataset, we compute the perplexity of heldout data to evaluate the models.
+
+A lower perplexity score indicates better generalization performance of the model. The baseline we choose is Latent Dirichlet Allocation (LDA). Specifically, we calculate perplexity of heldout data by the following equation:
+
+\vspace{-1mm}
+
+\begin{equation}
+	\textrm{Perplexity}({D}_{test}|\mathcal{M})=\exp(-\frac{{\sum}_{d\in D_{test}} \log p(\overrightarrow{w}_{d}|\mathcal{M})}{{\sum}_{d\in D_{test}} N_d}),
+\end{equation}
+
+
+
+\noindent where $\mathcal{M}$ is the model learned from the training dataset, $\overrightarrow{w}_{d}$ is the word vector for document $d$ and $N_d$ is the number of words in $d$.
+
+
+\subsubsection{Topic Distinctiveness}
+
+%To evaluate the distinctiveness of the discovered topics, we use the Kullback-Leibler divergence \cite{KL}.
+
+KL-divergence is a standard metric to evaluate the distance between two distributions, defined as $D_{KL}(p||q) = \sum{p(i) \cdot log_2(\frac{p(i)}{q(i)})}$. In our work, we calculate the average KL-divergence of each pair of topics. The higher the average KL-divergence, the more distinct the discovered topics are.
