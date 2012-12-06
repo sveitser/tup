@@ -207,7 +207,8 @@ class OnlineLDA:
             z_d = n.argmax(gammad)
             gammaa_new = n.zeros(self._K) + self._alpha
             gammaa_new[z_d] += n.sum(wordcts[d]) #z_score
-            self._gamma[a, :] = 0.99 * gammaa + 0.01 * gammaa_new
+            self._gamma[a, :] = self._rhot * gammaa + (1 - self._rhot) * gammaa_new
+            #self._gamma[a, :] = 0.99 * gammaa + 0.01 * gammaa_new
             # print [f(self._gamma[a, :]) for f in [n.min, n.max, n.mean]]
             
             #print gammad ######
@@ -322,3 +323,23 @@ class OnlineLDA:
                               gammaln(n.sum(self._lambda, 1)))
 
         return(score)
+
+    def kl_divergence(self):
+        """
+        Calculate average pairwise KL divergence between all topics
+        """
+        sum_kl = 0.0
+        
+        for i in range(0, self._K):
+            
+            for j in range(0, self._K):
+                if i == j:
+                    continue
+                div = self._lambda[i] / self._lambda[j]
+                div = n.log2(div) * self._lambda[i]
+                val = n.sum(div)
+                sum_kl = sum_kl + val
+        
+        avg_kl = sum_kl / (self._K * (self._K-1))
+        
+        return (avg_kl)
