@@ -56,8 +56,22 @@ KL-divergence is a standard metric to evaluate the distance between two distribu
 	\includegraphics[width=\figwidth,height=\figheigt]{tau_lda}
 	\label{fig:tau_tatm2}
 }
-\caption[Optional caption for list of figures]{Comparison of LDA, TATM1 and TATM2. The vertical axis shows the perplexity and the horizontal axis time $t$ in number of mini-batches processed.}
+\subfigure[$\kappa_\textrm{LDA}$]{
+	\includegraphics[width=\figwidth,height=\figheigt]{batch_lda}
+	\label{fig:batch_lda}
+}
+\subfigure[$\kappa_\textrm{TATM1}$]{
+	\includegraphics[width=\figwidth,height=\figheigt]{batch_tatm1}
+	\label{fig:batch_tatm1}
+}
+\subfigure[$\kappa_\textrm{TATM2}$]{
+	\includegraphics[width=\figwidth,height=\figheigt]{batch_tatm2}
+	\label{fig:batch_tatm2}
+}
+\caption[Optional caption for list of figures]{Comparison of LDA, TATM1 and TATM2. The vertical axis shows the perplexity and the horizontal axis time $t$ in number of mini-batches processed unless otherwise specified.}
 \label{fig:evaluation}
 \end{figure}
 %
 We compare the perplexity for the there models and different values of the \textit{forgetting rate} $\kappa$, the delay $\tau$ and the size of the mini-batches $D$ in figure \ref{fig:evaluation}. LDA and TATM2 are rather insensitive towards the choice of $\kappa$, while for TATM1 lower values of $\kappa$ lead to better results. Overall LDA and TATM2 perform similarly while the results obtained with TATM1 show a perplexity about three times larger after 100 mini-batches have been processed. In general choosing lower values of $\kappa$ increases the initial rate of convergence.
+
+Figures \ref{fig:batch_lda}, \ref{fig:batch_tatm1} and \ref{fig:batch_tatm2} show the final perplexity for batch sizes of 100, 1000 and 10,000. LDA generally delivers the best results and is the least sensitive to choice of batch size. An intermediate batch size of 1000 is the best choice for LDA. TATM1 performs very poorly with the smaller batch sizes but the performance of TATM2 is worst with the larger batch size.
