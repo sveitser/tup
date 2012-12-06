@@ -7,6 +7,7 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{subfigure}
+%\usepackage[sections=normal,title=normal]{savetrees}
 \usepackage[colorlinks]{hyperref}
 \usepackage[sorting=none]{biblatex}
 \bibliography{bibliography}
@@ -31,7 +32,7 @@
 \maketitle
 
 \begin{abstract}
-We discuss, evaluate and compared various topic models in regards to profiling microblog users according to their interests. A challenging aspect of the problem is the evolution of the users and the topics of interests in the general population. 
+We propose, implement and analyze two new topic models for twitter user profiling. A challenging aspect of the problem is the evolution of the users and the topics of interests in the general population. We use stochastic variational inference allowing for scalability and treatment of streaming data. We analyze the perplexity of our models output and compare them with the well established Latent Dirichlet Allocation topic model.
 \end{abstract}
 
 \section{Introduction}
