@@ -20,7 +20,7 @@
 			\end{array}   \right. $
 		
 		\STATE Set global author topic proportions $\gamma_a^{(t+1)} = (1 - \rho_t) \gamma_a^{(t)} + \rho_t \hat{\gamma}_a$.
-		\STATE Set intermediate topics $\hat{\lambda}_k = \eta +D \phi_d^k \sum_{n=1}^{N}{w_{d,n}}$ , $k\in\{1,\dots,K\}$.
+		\STATE Set intermediate topics $\hat{\lambda}_k = \eta +D  \sum_{n=1}^{N}{\phi_{d,n}^k w_{d,n}}$ , $k\in\{1,\dots,K\}$.
 	%\UNTIL{$\hat{\gamma}_d$ converges}
 		%\STATE Set intermediate topics $\hat{\lambda} = \eta + D \sum_{n=1}^{N}{\phi_{d,n}w_{d,n}}$.
 		\STATE Set global topics $\lambda^{(t+1)} = (1 - \rho_t) \lambda^{(t)} + \rho_t \hat{\lambda}$.
