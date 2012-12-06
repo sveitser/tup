@@ -28,13 +28,36 @@ A lower perplexity score indicates better generalization performance of the mode
 	\textrm{Perplexity}({D}_{test}|\mathcal{M})=\exp(-\frac{{\sum}_{d\in D_{test}} \log p(\overrightarrow{w}_{d}|\mathcal{M})}{{\sum}_{d\in D_{test}} N_d}),
 \end{equation}
 
-
-
 \noindent where $\mathcal{M}$ is the model learned from the training dataset, $\overrightarrow{w}_{d}$ is the word vector for document $d$ and $N_d$ is the number of words in $d$.
-
 
 \subsubsection{Topic Distinctiveness}
 
 %To evaluate the distinctiveness of the discovered topics, we use the Kullback-Leibler divergence \cite{KL}.
 
 KL-divergence is a standard metric to evaluate the distance between two distributions, defined as $D_{KL}(p||q) = \sum{p(i) \cdot log_2(\frac{p(i)}{q(i)})}$. In our work, we calculate the average KL-divergence of each pair of topics. The higher the average KL-divergence, the more distinct the discovered topics are.
+
+\subsection{Results} \label{sec:results}
+%
+\begin{figure}[ht]
+\centering
+\subfigure[$\kappa_\textrm{LDA}$]{
+	\includegraphics[width=\figwidth]{kappa_lda}
+	\label{fig:kappa_lda}
+}
+\subfigure[$\kappa_\textrm{TATM1}$]{
+	\includegraphics[width=\figwidth]{kappa_tatm1}
+	\label{fig:kappa_tatm1}
+}
+\subfigure[$\kappa_\textrm{TATM2}$]{
+	\includegraphics[width=\figwidth]{kappa_tatm2}
+	\label{fig:kappa_tatm2}
+}
+\subfigure[$\tau_\textrm{LDA}$]{
+	\includegraphics[width=\figwidth]{tau_lda}
+	\label{fig:tau_tatm2}
+}
+\caption[Optional caption for list of figures]{Comparison of LDA, TATM1 and TATM2. The vertical axis shows the perplexity and the horizontal axis the number of mini-batches processed.}
+\label{fig:evaluation}
+\end{figure}
+%
+We compare the perplexity for the there models and different values of the \textit{forgetting rate} $\kappa$, the delay $\tau$ and the size of the mini-batches $D$ in figure \ref{fig:evaluation}.
