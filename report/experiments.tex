@@ -1,16 +1,16 @@
 \section{Experiments}
 %
-\subsection{Methodology}\label{sec:methodology}
+%\subsection{Methodology}\label{sec:methodology}
 %
-\subsubsection{Data}\label{sec:data}
+\subsection{Dataset}\label{sec:data}
 %
-We use our own dataset consisting of 328,428 tweets by 1,876 different users. In brief, it was obtained by selecting a set of 50 popular \textit{core users} from 5 randomly selected categories and crawling Twitter users' posts in a breadth-first search manner by traversing the followee graph. The data was then pre-processed with stemming and stop-word removal.
+We use our own dataset consisting of 328,428 tweets by 1,876 different users. In brief, it was obtained by selecting a set of 50 \textit{seed users}, consisting of popular Twitter users from 5 randomly selected categories. Starting from the seed users, we crawled tweets in a breadth-first search manner by traversing the followee graph. The data was then pre-processed with stemming and stop-word removal. For our experiments, we randomize the ordering of tweets.
 %
-\subsubsection{Software}\label{sec:code}
+\subsection{Software}\label{sec:code}
 %
 As a base for our code we use an open source online LDA variational bayes package made available by Matt Hoffman\footnote{\url{http://www.cs.princeton.edu/~blei/downloads/onlineldavb.tar}}. We adapted it to incorporate our models and used the included online LDA methods as a benchmark against our models.
 %
-\subsection{Topic Model Evaluation}
+\subsection{Evaluation Metrics}
 \subsubsection{Perplexity Evaluation}
 %
 %We use the standard metric perplexity \cite{RefWorks:138} to evaluate the topic model's capability of predicting unseen data. 
@@ -52,15 +52,15 @@ KL-divergence is a standard metric to evaluate the distance between two distribu
 	\includegraphics[width=\figwidth,height=\figheight]{kappa_tatm2}
 	\label{fig:kappa_tatm2}
 }
-\subfigure[$\kappa_\textrm{LDA}$]{
+\subfigure[Batch size LDA]{
 	\includegraphics[width=\figwidth,height=\figheight]{batch_lda}
 	\label{fig:batch_lda}
 }
-\subfigure[$\kappa_\textrm{TATM1}$]{
+\subfigure[Batch size TATM1]{
 	\includegraphics[width=\figwidth,height=\figheight]{batch_tatm1}
 	\label{fig:batch_tatm1}
 }
-\subfigure[$\kappa_\textrm{TATM2}$]{
+\subfigure[Batch size TATM2]{
 	\includegraphics[width=\figwidth,height=\figheight]{batch_tatm2}
 	\label{fig:batch_tatm2}
 }
@@ -72,11 +72,13 @@ KL-divergence is a standard metric to evaluate the distance between two distribu
 \label{fig:evaluation}
 \end{figure}
 %
-We compare the perplexity for the there models and different values of the \textit{forgetting rate} $\kappa$, the delay $\tau$ and the size of the mini-batches $D$ in figure \ref{fig:evaluation}. LDA and TATM2 are rather insensitive towards the choice of $\kappa$, while for TATM1 lower values of $\kappa$ lead to better results. Overall LDA and TATM2 perform similarly while the results obtained with TATM1 show a perplexity about three times larger after 100 mini-batches have been processed. In general choosing lower values of $\kappa$ increases the initial rate of convergence.
+To find a suitable parameter setting for LDA, TATM1 and TATM2, we compare the perplexity for the there models and different values of the \textit{forgetting rate} $\kappa$, the delay $\tau$ and the size of the mini-batches $D$ in figure \ref{fig:evaluation}. We run these tests on a smaller dataset of 100,000 tweets. Each parameter is evaluated by keeping all other parameters fixed. For example, when evaluating the value of $\kappa$ (Figures \ref{fig:kappa_lda} - \ref{fig:kappa_tatm2}), we set $K=50$, $D=1000$, $\tau_0=1024$. We evaluate parameters in the following order: $\kappa$, $\tau$, $D$. After the optimal value of a parameter is found, its optimal value will be fixed when evaluating the next parameter.
 
-Figures \ref{fig:batch_lda}, \ref{fig:batch_tatm1} and \ref{fig:batch_tatm2} show the final perplexity for batch sizes of 100, 1000 and 10,000. LDA generally delivers the best results and is the least sensitive to choice of batch size. An intermediate batch size of 1000 is the best choice for LDA. TATM1 performs very poorly with the smaller batch sizes but the performance of TATM2 is worst with the larger batch size.
+From Figure \ref{fig:evaluation}, we can see that LDA and TATM2 are rather insensitive towards the choice of $\kappa$, while for TATM1 lower values of $\kappa$ lead to better results. Overall LDA and TATM2 perform similarly while the results obtained with TATM1 show a perplexity about three times larger after 100 mini-batches have been processed. In general choosing lower values of $\kappa$ increases the initial rate of convergence.
 
-Figure \ref{fig:tau_lda} shows the perplexity for various values of the delay $\tau$ for LDA. The delay down-weighs earlier mini batches. Larger values of $\tau$ lead to both faster convergence and better final results. For TATM1 and TATM2 the dependence is similar and the figures have been omitted.
+Figures \ref{fig:batch_lda}, \ref{fig:batch_tatm1} and \ref{fig:batch_tatm2} show the perplexity for batch sizes of 100, 1000 and 10,000. LDA generally delivers the best results and is the least sensitive to choice of batch size. An intermediate batch size of 1000 is the best choice for LDA. TATM1 performs very poorly with the smaller batch sizes but achieves a comparable performance to LDA and TATM2 with a larger $D=10000$. On the other hand, the performance of TATM2 is worse with a larger batch size.
+
+Figure \ref{fig:tau_lda} shows the perplexity for various values of the delay $\tau$ for LDA. The delay down-weighs earlier mini batches. Larger values of $\tau$ lead to both faster convergence and better final results. For TATM1 and TATM2 the dependence is similar and the figures have thus been omitted.
 %
 \begin{table}[h]
 \centering
@@ -102,3 +104,5 @@ TATM2	&11816694	&7907283&	2170469	&1157004 &613705  \\
 \label{tab:kl}
 \end{table}
 %
+
+After finding the optimal parameter values for each model, we train each model on the full tweet corpus and evaluate the overall performance for different numbers of topics ($k$). The results are shown in Figures \ref{tab:perplexity} and \ref{tab:kl}. First, we can observe that TATM2 achieves a lower perplexity than TATM1, indicating that allowing a per-tweet topic mixture can yield a better predictivity of the model. Similarly, we observe that the topics discovered by TATM1 are less distinct than topics from the other two models. Second, we can see that TATM2 achieves a similar perplexity to LDA and even outperforms LDA at $k=50$. In terms of distinctiveness, TATM2 produces more distinct topics than LDA when $k=5, k=10$. These results indicate that capturing the author-level topic distribution in TATM2 has potential advantages over LDA.

@@ -7,11 +7,14 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{subfigure}
-%\usepackage[marg in=2.5cm]{geometry}
+%\usepackage[margin=2.5cm]{geometry}
+\usepackage[margin=1.5cm,bottom=2.5cm]{geometry}
 %\usepackage[sections=normal,title=normal]{savetrees}
 \usepackage[colorlinks]{hyperref}
 \usepackage[sorting=none]{biblatex}
 \bibliography{bibliography}
+
+
 
 % definitions
 \def\eqd{\,{\buildrel d \over =}\,}
@@ -19,6 +22,7 @@
 \def\z{{\bf z}}
 \def\figwidth{0.31\linewidth}
 \def\figheight{3cm}
+
 
 \title{Topic Models for Twitter User Profiling}
 \author{
@@ -30,11 +34,12 @@
 \\ The Hong Kong University of Science and Technology 
 \\ Clear Water Bay 
 \\ Hong Kong} 
+
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We propose, implement and analyze two new topic models for twitter user profiling. A challenging aspect of the problem is the evolution of the users and the topics of interests in the general population. We use stochastic variational inference allowing for scalability and treatment of streaming data. We analyze the perplexity of our models output and compare them with the well established Latent Dirichlet Allocation topic model.
+We study the application of topic modeling in the dynamic and social context of microblogs. We propose, implement and analyze two new topic models for twitter user profiling. A challenging aspect of the problem is the evolution of the users and the topics of interests in the general population. We use stochastic variational inference allowing for scalability and treatment of streaming data. We analyze the perplexity of our models output and compare them with the well established Latent Dirichlet Allocation topic model.
 \end{abstract}
 
 \section{Introduction}
@@ -49,15 +54,18 @@ Our goal is to construct a model for Twitter user profiling. The task at hand is
 	\item In Twitter we need to deal with large-scale data produced in real-time.
 \end{itemize}
 %
-Based on these observations we propose the following two distinct models for Twitter user profiling, shown in Figure \ref{fig:plates}. The main difference between the two models is the Twitter Author Topic Model 1 (TATM1) assumes that each tweet is about a single topic (this is based on the observation of tweets consisting maximally of about two dozen words) whereas in the Twitter Author Topic Model 2 (TATM2) we have a topic assignment on a per word basis. 
+Based on these observations we propose the following two distinct models for Twitter user profiling.
+%, shown in Figure \ref{fig:plates}. 
+%The main difference between the two models 
+In the Twitter Author Topic Model 1 (TATM1) we assume that each tweet is about a single topic (this is based on the observation that tweets consist of about a dozen words at most), whereas in the Twitter Author Topic Model 2 (TATM2) we have a topic assignment on a per word basis. 
 %
-\begin{figure}
-	%\includegraphics[width=0.6\linewidth]{plates}
-	\caption{Models in Plate Notation}
-	\label{fig:plates}
-\end{figure}
+%\begin{figure}
+%	%\includegraphics[width=0.6\linewidth]{plates}
+%	\caption{Models in Plate Notation}
+%	\label{fig:plates}
+%\end{figure}
 %
-Both of these models can take advantage of correlations between the tweets of the same author, as the author of a tweet is always known. As our average twitter user is assumed to be alive and tweeting, we are very interested in having an online inference method as opposed to a batch method or standard Gibbs Sampling. An online learning method for LDA, namely \textit{stochastic variational inference} has been developed recently \cite{Hoffman10,Hoffman12}. We use it as a basis to develop an online learning method for our models. The generative process assumed by our models is similar to the author topic model in \cite{Rosen04}. 
+Both of these models can take advantage of correlations between the tweets of the same author, as the author of a tweet is always known. As our average Twitter user is assumed to be alive and tweeting, we are very interested in having an online inference method as opposed to a batch method or standard Gibbs Sampling. An online learning method for LDA, namely \textit{stochastic variational inference} has been developed recently \cite{Hoffman10,Hoffman12}. We use it as a basis to develop an online learning method for our models.
 
 \section{Stochastic Variational Inference}
 The procedure is derived in detail in \cite{Hoffman12}, here we give a high
@@ -145,5 +153,11 @@ It turns out in this particular case, with the careful choice of distributions a
 \input{TATM1_Algorithm}
 \input{experiments}
 \input{conclusion}
+
+
 \printbibliography
+
+%\bibliographystyle{abbrv}
+%\bibliography{sigproc}
+
 \end{document}

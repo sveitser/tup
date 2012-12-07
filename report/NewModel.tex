@@ -2,12 +2,12 @@
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=0.4\textwidth]{TATM2.eps}
+    \includegraphics[width=0.3\textwidth]{TATM2.eps}
     \caption{TATM2 in plate notation}
     \label{fig:TATM2}
 \end{figure}
 
-The model is shown in Figure \ref{fig:TATM2}. The generative process is as follows:
+Here we describe our model for discovering the interests of Twitter users. We start by introducing the Tweet Author-Topic Model 2 (TATM2), shown in Figure \ref{fig:TATM2}, which assumes that each word in a tweet may have a its topic association. The generative process assumed by our models was inspired by the Author-Topic model in \cite{Rosen04}. The generative process is as follows:
 
 \begin{enumerate}
 	\item For $k \in {1, \ldots, K}$:
@@ -91,12 +91,14 @@ Each update of the global variational Dirichlets is defined as
 \subsection{Stochastic variational inference}
 
 
-Each update of the local variables $\phi^k_{d,n}$ is then defined as
+Hoffman et al. \cite{Hoffman10} developed a Stochastic variational inference algorithm for LDA. In our work, we adopt this algorithm for our proposed algorithms. We continue the description of our model TATM2 from the previous section. 
+
+During the updates of local variables, we utilize an intermediate local variable $\theta_{d}$, linked to an intermediate variational parameter $\hat{\gamma}_d$. This mechanism serves as a proxy for the convergence of $\phi_{d}$ during the inner loop of the E-step. Each update of the local variables $\phi^k_{d,n}$ is then defined as
 \begin{equation}
 \phi^k_{d,n} \propto \exp \{ \mathbb{E}[\log \theta_{a,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \} + \exp \{ \mathbb{E}[\log \theta_{d,k}] + \mathbb{E}[\log \beta_{k,w_{d,n}}] \}.
 \end{equation}
 
-During the updates of local variables, we utilize an intermediate local variable $\theta_{d}$, linked to an intermediate variational parameter $\hat{\gamma}_d$. This mechanism serves as a proxy for the convergence of $\phi_{d}$ during the inner loop of the E-step. After each update of $\phi_{d}$, $\hat{\gamma}_d$ is updated as
+After each update of $\phi_{d}$, $\hat{\gamma}_d$ is updated as
 \begin{equation}
 \hat{\gamma}_d = \alpha + \sum_{n=1}^{N}{\phi_{d,n}}
 \end{equation}
@@ -115,7 +117,7 @@ Finally, the global topics and the global per-author topic proportions are updat
 \gamma^{(t+1)}_a = (1 - \rho_t) \gamma^{(t)}_a + \rho_t \hat{\gamma}_d
 \end{equation}
 %
-where $\rho_t=(t + \tau)^{-\kappa}$. The parameter $\kappa\in(0.5,1]$ is the \textit{forgetting rate} and $\tau\geq0$ is the \textit{delay}.
+where $\rho_t=(t + \tau)^{-\kappa}$. The parameter $\kappa\in(0.5,1]$ is the \textit{forgetting rate} and $\tau\geq0$ is the \textit{delay}. The full inference algorithm is presented in Algorithm \ref{alg:stoch_tatm2}.
 
 
 \begin{algorithm}[tb]
